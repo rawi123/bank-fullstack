@@ -11,9 +11,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //allow cors 3000
-app.use(cors({
-    origin: 'http://localhost:3000'
-}));
+app.use(cors());
 
 app.get("/", (req, res) => {//get all users
     res.status(200).send(serverFunc.getAllUsers());
@@ -45,12 +43,10 @@ app.post("/", (req, res) => {//post new user
 })
 
 app.delete("/:id", (req, res) => {//delete a user
-    const data = serverFunc.getAllUsers();
-    console.log();
     if (serverFunc.deleteUser(req.params.id)) {
-        return res.status(200).send("Deleted id: ", req.params.id);
+        return res.status(200).json("Deleted id: "+ req.params.id);
     }
-    return res.send("User does not exist!")
+    return res.status(404).send("User does not exist!")
 })
 
 app.put("/rawiPassword/:id", (req, res) => {//only admin-with password, update a user only! if does exist send 404
@@ -68,10 +64,11 @@ app.put("/rawiPassword/:id", (req, res) => {//only admin-with password, update a
 })
 
 app.put("/credit/:id", (req, res) => {
-    if (parseFloat(req.body.credit) != req.body.credit) {
-        res.status(404).send("Invalid input");
+    if (parseFloat(req.body.ammount) != req.body.ammount) {
+        return res.status(404).send("Invalid input");
     }
-    updateSingleVar(req.params.id, { "credit": req.body.credit }, res)
+    
+    updateSingleVar(req.params.id, { "credit": req.body.ammount }, res)
 })
 
 app.put("/active/:id", (req, res) => {
@@ -83,7 +80,7 @@ app.put("/active/:id", (req, res) => {
 
 app.put("/withdraw/:id", (req, res) => {
     try {
-        const withdrawRes = serverFunc.withdraw(req.params.id, req.body.ammount);
+        const withdrawRes = serverFunc.withdraw(req.params.id,Number( req.body.ammount));
         if (withdrawRes === "Not enough money/credit" || withdrawRes === "User is inactive!" || withdrawRes === "User not found!") {
             throw withdrawRes;
         }
@@ -97,8 +94,11 @@ app.put("/withdraw/:id", (req, res) => {
 
 app.put("/deposit/:id", (req, res) => {
     try {
+        if(!req.body.ammount ||Number(req.body.ammount)!=req.body.ammount){
+            throw "Invalid input"
+        }
         const updateRes = serverFunc.deposit(req.params.id, req.body.ammount)
-        if (updateRes === "User not found!" || updateRes === "User is inactive!!" || updateRes === "User not found!") {
+        if (updateRes === "User not found!" || updateRes === "User is inactive!" || updateRes === "User not found!") {
             throw updateRes;
         }
         else {
@@ -129,7 +129,6 @@ app.put("/send/:id1/recive/:id2", (req, res) => {
 const updateSingleVar = (id, obj = { "credit": undefined }, res, changingActive = false) => {//gets id obj ={variable to change: the value to change it}
     try {
         const user = serverFunc.updateUser(id, obj, changingActive);//send true if trying to change active
-        console.log(user, obj)
         if (user) {
             return res.status(201).send(user);
         }
