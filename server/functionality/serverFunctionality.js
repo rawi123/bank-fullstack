@@ -78,7 +78,6 @@ const deposit = (id, cash, update = true) => {
     const data = getAllUsers();
     const user = data.find(user => user.passportID === Number(id));
     if (user && user.isActive) {
-        console.log(user["cash"] , cash , user["cash"])
         user["cash"] = Number(cash) + user["cash"];
 
         update ? updateAllUsers(data) : null;

@@ -140,6 +140,6 @@ const updateSingleVar = (id, obj = { "credit": undefined }, res, changingActive 
 }
 
 
-app.listen(4000, () => {
+app.listen(process.env.PORT || 4000, () => {
     console.log("app running on port 4000");
 })
